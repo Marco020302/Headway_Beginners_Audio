@@ -229,6 +229,93 @@
   @media (prefers-reduced-motion: reduce) {
     .freccia, nav, nav.aperto, .velo { transition: none; }
   }
+
+  /* ---------- Viewer PDF, pannello libri, layout a schermo intero ---------- */
+  [hidden] { display: none !important; }
+  body { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+  .layout { grid-template-columns: 330px minmax(0, 1fr) 240px; grid-template-rows: minmax(0, 1fr); max-width: 1400px; min-height: 0; overflow: hidden; }
+  nav, aside, .player { max-height: 100%; overflow-y: auto; }
+  .player { position: static; flex: 0 1 auto; min-height: 0; }
+  .centro { align-self: stretch; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+  aside { background: #fff; border: 2px solid var(--bordo); border-radius: var(--raggio); align-self: start; }
+  .voce-libro {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
+    border: 0; border-bottom: 1px solid var(--bordo); background: #fff; color: var(--testo);
+    font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+  }
+  .voce-libro:last-of-type { border-bottom: 0; }
+  @media (hover: hover) { .voce-libro:hover { background: var(--tema-chiaro); } }
+  .voce-libro:active, .voce-libro.attiva { background: var(--tema-chiaro); }
+  .libro { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fff; border: 2px solid var(--bordo); border-radius: var(--raggio); overflow: hidden; }
+  .pdf-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; background: var(--tema-chiaro); border-bottom: 1px solid var(--bordo); }
+  .pdf-barra button, .mini button { border: 0; cursor: pointer; min-width: 38px; height: 38px; border-radius: 10px; background: #fff; color: var(--testo); font: inherit; font-weight: 800; font-size: 1.25rem; }
+  .pdf-barra button:hover:not(:disabled) { background: var(--tema); }
+  .pdf-barra button:disabled { opacity: .4; cursor: default; }
+  #zoom-val { font-size: .9rem; padding: 0 8px; }
+  .pdf-barra input { width: 60px; height: 38px; border-radius: 10px; border: 2px solid var(--bordo); font: inherit; text-align: center; }
+  .sp { flex: 1; }
+  .pdf-scroll { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; background: color-mix(in srgb, var(--tema) 12%, #d6dad7); }
+  .pdf-holder { width: max-content; min-width: 100%; display: flex; justify-content: center; padding: 8px; }
+  .pdf-holder canvas { display: block; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+  #pdf-stato { padding: 24px; text-align: center; font-weight: 600; overflow-wrap: anywhere; }
+  #pdf-stato:empty { display: none; }
+  .mini { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--tema-chiaro); border-top: 2px solid var(--bordo); }
+  .mini svg { width: 20px; height: 20px; }
+  #mini-play { flex: none; border-radius: 50% !important; width: 42px; height: 42px; background: var(--tema) !important; display: grid; place-items: center; }
+  #mini-info { flex: 1; min-width: 0; height: auto; padding: 2px 4px; background: none; text-align: left; font-size: .95rem; }
+  #mini-info small { display: block; color: var(--testo-soft); font-weight: 600; }
+  #mini-info span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #apri-libri { display: none; flex: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; padding: 10px 14px; border-radius: 999px; background: var(--tema-scuro); color: #fff; }
+
+  @media (max-width: 800px) {
+    header h1 { font-size: 1.1rem; }
+    header p { display: none; }
+    header > div { flex: 1; min-width: 0; }
+    #apri-menu, #apri-libri { display: inline-block; padding: 9px 12px; font-size: .9rem; }
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+    nav { max-height: none; }
+    aside {
+      position: fixed; inset: 0 0 0 auto; width: min(88vw, 340px); z-index: 30; max-height: none;
+      border-radius: 0; border-width: 0 0 0 2px; overscroll-behavior: contain;
+      transform: translateX(100%); visibility: hidden;
+      transition: transform .25s ease, visibility 0s linear .25s;
+    }
+    aside.aperto { transform: none; visibility: visible; transition: transform .25s ease; }
+    .pdf-barra { gap: 6px; padding: 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) { aside, aside.aperto { transition: none; } }
+  .schede { display: flex; gap: 6px; padding: 10px; background: var(--tema-chiaro); border-bottom: 1px solid var(--bordo); }
+  .scheda { flex: 1; padding: 8px 4px; border: 2px solid var(--bordo); border-radius: 10px; background: #fff; color: var(--testo); font: inherit; font-weight: 700; font-size: .85rem; line-height: 1.2; cursor: pointer; }
+  .scheda.attiva { background: var(--tema-scuro); border-color: var(--tema-scuro); color: #fff; }
+  .btn-opz { font: inherit; font-weight: 700; padding: 6px 12px; border-radius: 8px; border: 2px solid var(--bordo); background: #fff; color: var(--testo); cursor: pointer; }
+  /* ---------- Player video: controlli in sovrapposizione ---------- */
+  .stage { position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 18px; }
+  .schermo { display: block; width: 100%; max-height: 62dvh; background: #000; cursor: pointer; }
+  .stage:fullscreen { margin: 0; border-radius: 0; }
+  .stage:fullscreen .schermo { height: 100%; max-height: none; object-fit: contain; }
+  .stage.nascosti { cursor: none; }
+  .overlay {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 14px 8px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; color: #fff;
+    background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+    transition: opacity .3s;
+  }
+  .stage.nascosti .overlay { opacity: 0; pointer-events: none; }
+  .overlay .barra { flex: 0 0 100%; order: 1; margin: 0; }
+  .overlay .tempi { color: #e8efe9; }
+  .overlay input[type=range] { accent-color: var(--tema); }
+  .overlay .comandi { order: 2; margin: 0; gap: 4px; }
+  .overlay .comandi button { width: 40px; height: 40px; background: transparent; color: #fff; }
+  .overlay .comandi button:hover:not(:disabled) { background: rgba(255, 255, 255, .22); }
+  .overlay .comandi #play { width: 46px; height: 46px; background: rgba(255, 255, 255, .18); }
+  .overlay .opzioni { order: 3; margin-left: auto; padding: 0; border: 0; gap: 8px 16px; flex-wrap: nowrap; color: #fff; font-size: .85rem; }
+  .overlay .opzioni label:has(input[type=checkbox]) { display: none; }
+  .overlay select, .overlay .btn-opz { background: rgba(0, 0, 0, .55); color: #fff; border-color: rgba(255, 255, 255, .35); }
+  @media (max-width: 800px) { .overlay #prec, .overlay #succ { display: none; } }
+  @media (hover: none) { .overlay .opzioni label:has(#volume) { display: none; } }
+  #schermo-intero { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; }
+  #schermo-intero svg { width: 20px; height: 20px; }
+  #schermo-intero[hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -237,8 +324,9 @@
   <button id="apri-menu" aria-controls="elenco" aria-expanded="false">☰ Tracce</button>
   <div>
     <h1>Headway Beginner</h1>
-    <p>5th edition · Audio</p>
+    <p>5th edition</p>
   </div>
+  <button id="apri-libri" aria-controls="libri" aria-expanded="false">Libri</button>
 </header>
 
 <div class="layout">
@@ -247,7 +335,12 @@
   </nav>
   <div class="velo" id="velo"></div>
 
-  <main class="player">
+  <main class="centro">
+  <section class="player" id="vista-audio" hidden>
+    <div class="stage" id="stage" hidden>
+      <video id="audio" class="schermo" preload="metadata" playsinline></video>
+      <div class="overlay" id="overlay"></div>
+    </div>
     <div class="ora">
       <small>In riproduzione</small>
       <h2 id="titolo">Scegli una traccia dall’elenco</h2>
@@ -280,79 +373,186 @@
       <label><input type="checkbox" id="auto"> Traccia successiva in automatico</label>
       <label><input type="checkbox" id="ripeti"> Ripeti traccia</label>
       <label>Volume <input type="range" id="volume" min="0" max="1" step="0.05" value="1"></label>
+      <button id="schermo-intero" class="btn-opz" aria-label="Schermo intero" title="Schermo intero" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </div>
 
     <div id="errore" role="alert"></div>
-    <audio id="audio" preload="metadata"></audio>
+    
+  </section>
+
+  <section class="libro" id="vista-libro">
+    <div class="pdf-barra">
+      <button id="pg-prec" aria-label="Pagina precedente" disabled>‹</button>
+      <input id="pg" type="number" min="1" aria-label="Pagina"><span id="pg-tot"></span>
+      <button id="pg-succ" aria-label="Pagina successiva" disabled>›</button>
+      <span class="sp"></span>
+      <button id="zoom-meno" aria-label="Riduci">−</button>
+      <button id="zoom-val" aria-label="Zoom 100%">100%</button>
+      <button id="zoom-piu" aria-label="Ingrandisci">+</button>
+    </div>
+    <div class="pdf-scroll" id="pdf-scroll"><div class="pdf-holder" id="pdf-holder"></div><div id="pdf-stato"></div></div>
+    <div class="mini" id="mini" hidden>
+      <button id="mini-play" aria-label="Riproduci"></button>
+      <button id="mini-info"><small>In riproduzione – apri il player</small><span id="mini-testo"></span></button>
+    </div>
+  </section>
   </main>
+  <aside id="libri" aria-label="Libri">
+    <div class="menu-testa"><strong>Libri</strong><button id="chiudi-libri" aria-label="Chiudi menu">✕</button></div>
+  </aside>
 </div>
 
 <script>
 /* =====================================================
    CONFIGURAZIONE
-   - CARTELLA_AUDIO: nome della cartella principale
-     (deve stare accanto a questo file HTML)
-   - Per ogni Unit: [ "nome esatto della cartella", [numeri dei file mp3] ]
-   Esempio: ["Unit 01 - Hello everybody!", [1,2,3,4,5]]
-   - Terzo elemento facoltativo: titolo da mostrare a schermo, utile
-     quando contiene caratteri non ammessi nei nomi file (es. "?")
+   Il blocco tra INIZIO e FINE si può rigenerare con percorsiAUnits()
+   (vedi sotto): contiene cartelle, libri, categorie e contenuti.
+   I nomi delle Unit, invece, stanno in NOMI_UNIT e si scrivono a mano.
    ===================================================== */
-const CARTELLA_AUDIO = "Audio";
+const serie = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => String(a + i).padStart(2, "0"));
 
-const intervallo = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-
-const UNITS = [
-  ["Unit 01 - Hello!", intervallo(1, 14)],
-  ["Unit 02 - Your World", intervallo(1, 15)],
-  ["Unit 03 - All About You", intervallo(1, 11)],
-  ["Unit 04 - Family and Friends", intervallo(1, 17)],
-  ["Unit 05 - Thinks I Like!", intervallo(1, 17)],
-  ["Unit 06 - Every Day", intervallo(1, 16)],
-  ["Unit 07 - Favourite Things", intervallo(1, 10)],
-  ["Unit 08 - Home Sweet Home", intervallo(1, 12)],
-  ["Unit 09 - Past Times", intervallo(1, 18)],
-  ["Unit 10 - We Had a Good Time!", intervallo(1, 11)],
-  ["Unit 11 - We Can Do It!", intervallo(1, 11)],
-  ["Unit 12 - Thank You Very Much!", intervallo(1, 10)],
-  ["Unit 13 - What's Happening Now", intervallo(1, 12), "What's Happening Now?"],
-  ["Unit 14 - Let's Go!", intervallo(1, 9)],
+// >>> INIZIO COSTANTI GENERATE
+const CARTELLA_LIBRI = "Books";
+const LIBRI = [
+  { file: "Student's Book.pdf", nome: "Student's Book", sigla: "SB" },
+  { file: "Workbook.pdf", nome: "Workbook", sigla: "WB" },
+  { file: "Teacher's Guide.pdf", nome: "Teacher's Guide", sigla: "TG" },
 ];
+const CARTELLA_MEDIA = "Media";
+const CATEGORIE = [
+  { cartella: "Student's Book", nome: "Student's Book", tipo: "audio" },
+  { cartella: "Workbook", nome: "Workbook", tipo: "audio" },
+  { cartella: "Videos", nome: "Video", tipo: "video" },
+];
+const NOMI_UNIT = {
+  "Unit 01": "Hello!",
+  "Unit 02": "Your World",
+  "Unit 03": "All About You",
+  "Unit 04": "Family and Friends",
+  "Unit 05": "Things I Like!",
+  "Unit 06": "Every Day",
+  "Unit 07": "Favourite Things",
+  "Unit 08": "Home Sweet Home",
+  "Unit 09": "Past Times",
+  "Unit 10": "We Had a Good Time!",
+  "Unit 11": "We Can Do It!",
+  "Unit 12": "Thank You Very Much!",
+  "Unit 13": "What's Happening Now?",
+  "Unit 14": "Let's Go!",
+};
+const CONTENUTI = {
+  "Student's Book": {
+    "Unit 01": serie(1, 12),
+    "Unit 02": serie(1, 15),
+    "Unit 03": serie(1, 12),
+    "Unit 04": serie(1, 20),
+    "Unit 05": serie(1, 17),
+    "Unit 06": serie(1, 16),
+    "Unit 07": serie(1, 11),
+    "Unit 08": serie(1, 13),
+    "Unit 09": serie(1, 20),
+    "Unit 10": serie(1, 11),
+    "Unit 11": serie(1, 11),
+    "Unit 12": serie(1, 10),
+    "Unit 13": serie(1, 12),
+    "Unit 14": serie(1, 12),
+  },
+  "Workbook": {
+    "Unit 01": serie(1, 9),
+    "Unit 02": serie(1, 8),
+    "Unit 03": serie(1, 3),
+    "Unit 04": serie(1, 8),
+    "Unit 05": serie(1, 8),
+    "Unit 06": serie(1, 7),
+    "Unit 07": serie(1, 7),
+    "Unit 08": serie(1, 7),
+    "Unit 09": serie(1, 6),
+    "Unit 10": serie(1, 5),
+    "Unit 11": serie(1, 8),
+    "Unit 12": serie(1, 8),
+    "Unit 13": serie(1, 4),
+    "Unit 14": serie(1, 6),
+  },
+  "Videos": {
+    "Unit 01": ["Hello", "Opener"],
+    "Unit 02": ["About me", "Opener"],
+    "Unit 03": ["Opener", "Paula Harrid"],
+    "Unit 04": ["Ethans life", "Opener"],
+    "Unit 05": ["International Food", "Opener"],
+    "Unit 06": ["Opener", "Sarahs day"],
+    "Unit 07": ["I love to shop", "Opener"],
+    "Unit 08": ["A houseboat in Sausalito Mixed", "Opener"],
+    "Unit 09": ["Opener", "Steve Jobs"],
+    "Unit 10": ["Last Weekend", "Opener"],
+    "Unit 11": ["Living Craft", "Opener"],
+    "Unit 12": ["LA Food Trucks", "Opener"],
+    "Unit 13": ["Clothes", "Opener"],
+    "Unit 14": ["Next Holiday", "Opener"],
+  },
+};
+// <<< FINE COSTANTI GENERATE
 
 /* =====================================================
-   UTILITÀ (non usata dalla pagina): converte un elenco di
-   percorsi, come quello dei comandi "tree" o "find", nel
-   testo da incollare al posto di UNITS.
-   Uso dalla console del browser (F12), con String.raw per
-   non perdere i backslash di Windows:
+   UTILITÀ (non usata dalla pagina): legge l'output del comando
+   "tree" e restituisce il testo delle costanti generate, da
+   incollare tra INIZIO e FINE. Si usa dalla console (F12):
 
-     copy(percorsiAUnits(String.raw`./Unit 01 - Hello!\01.mp3
-     ./Unit 01 - Hello!\02.mp3`))
+     copy(percorsiAUnits(String.raw`<output di: tree /f>`))
 
-   Accetta sia "\" sia "/" e un eventuale "./" iniziale.
-   I titoli personalizzati (terzo elemento) vanno aggiunti a mano.
+   Funziona con "tree /f" di Windows (anche con /a) e con
+   le cartelle: Books/*.pdf e Media/<Categoria>/<Unit>/<file>.mp3|mp4.
+   I nomi già presenti in NOMI_UNIT, LIBRI e CATEGORIE si conservano;
+   per le Unit nuove il nome resta vuoto, da compilare a mano.
    ===================================================== */
 function percorsiAUnits(testo) {
-  const gruppi = new Map();
-  testo.split(/\r?\n/).forEach(riga => {
-    const parti = riga.trim().replace(/^\.?[\\/]/, "").split(/[\\/]/).filter(Boolean);
-    if (parti.length < 2) return;
-    const m = parti.pop().match(/^(\d+)\.mp3$/i);
-    if (!m) return;
-    const cartella = parti[parti.length - 1];
-    if (!gruppi.has(cartella)) gruppi.set(cartella, []);
-    gruppi.get(cartella).push(parseInt(m[1], 10));
-  });
-  const righe = [...gruppi.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, "it", { numeric: true }))
-    .map(([cartella, nums]) => {
-      nums.sort((a, b) => a - b);
-      const consecutivi = nums.every((n, i) => n === nums[0] + i);
-      const tracce = consecutivi
-        ? `intervallo(${nums[0]}, ${nums[nums.length - 1]})`
-        : `[${nums.join(", ")}]`;
-      return `  [${JSON.stringify(cartella)}, ${tracce}],`;
-    });
-  return "const UNITS = [\n" + righe.join("\n") + "\n];";
+  const pila = [], libri = [], media = {};
+  let cartellaLibri = CARTELLA_LIBRI, cartellaMedia = CARTELLA_MEDIA;
+  for (const riga of testo.split(/\r?\n/)) {
+    const r = riga.replace(/\s+$/, "");
+    const m = r.match(/^((?:[│|]|\s)*)(?:([├└+\\])[─-]+)?(.*)$/);
+    if (!m || !m[3]) continue;
+    const nome = m[3], col = r.length - nome.length;
+    if (col < 4 || col % 4) continue;                       // intestazione di tree o riga vuota
+    if (m[2]) { pila.length = col / 4 - 1; pila.push(nome); continue; }   // è una cartella
+    const dir = pila.slice(0, col / 4 - 1), ext = (nome.match(/\.(\w+)$/) || [])[1];
+    if (ext === "pdf" && dir.length === 1) { cartellaLibri = dir[0]; libri.push(nome); }
+    else if ((ext === "mp3" || ext === "mp4") && dir.length === 3) {
+      cartellaMedia = dir[0];
+      const cat = (media[dir[1]] ||= { tipo: ext === "mp4" ? "video" : "audio", unit: {} });
+      (cat.unit[dir[2]] ||= []).push(nome.slice(0, -4));
+    }
+  }
+  const q = JSON.stringify, nat = (a, b) => a.localeCompare(b, "it", { numeric: true });
+  const sigla = n => { const w = n.split(/\s+/); return (w.length > 1 ? w.map(x => x[0]).join("") : n.slice(0, 2)).toUpperCase(); };
+  const cats = Object.entries(media).sort(([a, x], [b, y]) => (x.tipo === "video") - (y.tipo === "video") || nat(a, b));
+  const unitTutte = [...new Set(cats.flatMap(([, d]) => Object.keys(d.unit)))].sort(nat);
+  const tracce = ids => {
+    ids.sort(nat);
+    const n = ids.map(Number);
+    return ids.every((x, i) => /^\d+$/.test(x) && n[i] === n[0] + i) ? `serie(${n[0]}, ${n[n.length - 1]})` : `[${ids.map(q).join(", ")}]`;
+  };
+  return [
+    `const CARTELLA_LIBRI = ${q(cartellaLibri)};`,
+    "const LIBRI = [",
+    ...libri.sort(nat).map(f => {
+      const v = LIBRI.find(l => l.file === f), base = f.replace(/\.pdf$/i, "");
+      return `  { file: ${q(f)}, nome: ${q(v ? v.nome : base)}, sigla: ${q(v ? v.sigla : sigla(base))} },`;
+    }),
+    "];",
+    `const CARTELLA_MEDIA = ${q(cartellaMedia)};`,
+    "const CATEGORIE = [",
+    ...cats.map(([c, d]) => {
+      const v = CATEGORIE.find(k => k.cartella === c);
+      return `  { cartella: ${q(c)}, nome: ${q(v ? v.nome : d.tipo === "video" ? "Video" : c)}, tipo: ${q(d.tipo)} },`;
+    }),
+    "];",
+    "const NOMI_UNIT = {",
+    ...unitTutte.map(u => `  ${q(u)}: ${q(NOMI_UNIT[u] || "")},`),
+    "};",
+    "const CONTENUTI = {",
+    ...cats.flatMap(([c, d]) => [`  ${q(c)}: {`, ...Object.keys(d.unit).sort(nat).map(u => `    ${q(u)}: ${tracce(d.unit[u])},`), "  },"]),
+    "};",
+  ].join("\n");
 }
 
 /* ===================== CODICE ===================== */
@@ -360,48 +560,62 @@ const $ = id => document.getElementById(id);
 const audio = $("audio");
 const pad = n => String(n).padStart(2, "0");
 
-// Elenco piatto di tutte le tracce, per poter andare avanti/indietro anche tra Unit
+// Elenco piatto di tutte le tracce (audio e video), raggruppato per categoria
 const playlist = [];
-UNITS.forEach(([cartella, tracce, titolo], u) => {
-  tracce.forEach(n => playlist.push({
-    u, n,
-    unit: cartella,
-    titolo,
-    src: [CARTELLA_AUDIO, cartella, pad(n) + ".mp3"].map(encodeURIComponent).join("/")
-  }));
+CATEGORIE.forEach((c, ci) => {
+  const ext = c.tipo === "video" ? "mp4" : "mp3";
+  Object.entries(CONTENUTI[c.cartella] || {}).forEach(([unit, ids]) => ids.forEach(id => playlist.push({
+    ci, unit, id, tipo: c.tipo,
+    src: [CARTELLA_MEDIA, c.cartella, unit, id + "." + ext].map(encodeURIComponent).join("/")
+  })));
 });
-
 let corrente = -1;
+const numUnit = u => parseInt((u.match(/\d+/) || [0])[0], 10);
 
-// --- Costruzione elenco ---
+// --- Costruzione elenco: schede (categorie) e Unit ---
 const nav = $("elenco");
-UNITS.forEach(([cartella, tracce, titolo], u) => {
-  const [, numero, nomeCartella] = cartella.match(/^Unit\s*(\d+)\s*-\s*(.*)$/i) || [, u + 1, cartella];
-  const nome = titolo || nomeCartella;
-  const det = document.createElement("details");
-  det.dataset.unit = u;
-  det.innerHTML = `<summary><span class="num">${parseInt(numero, 10)}</span><span class="nome">${nome}</span><span class="freccia">›</span></summary>`;
-  const ul = document.createElement("ul");
-  ul.className = "tracce";
-  tracce.forEach(n => {
-    const li = document.createElement("li");
-    const b = document.createElement("button");
-    b.textContent = pad(n);
-    b.title = `Unit ${parseInt(numero, 10)} – traccia ${pad(n)}`;
-    b.addEventListener("click", () => {
-      riproduci(playlist.findIndex(p => p.u === u && p.n === n), false);   // si sceglie la traccia, si avvia con ▶
-      chiudiMenu();
-    });
-    li.appendChild(b);
-    ul.appendChild(li);
-  });
-  det.appendChild(ul);
-  det.querySelector("summary").addEventListener("click", e => {
-    e.preventDefault();   // l'apertura la gestiamo noi, con l'animazione
-    if (det.classList.contains("aperta")) animaUnit(det, false); else apriUnit(det);
-  });
-  nav.appendChild(det);
+const schede = document.createElement("div");
+schede.className = "schede";
+nav.appendChild(schede);
+const caselle = CATEGORIE.map((c, ci) => {
+  const t = document.createElement("button");
+  t.className = "scheda"; t.textContent = c.nome;
+  t.addEventListener("click", () => mostraCategoria(ci));
+  schede.appendChild(t);
+  const box = document.createElement("div");
+  box.className = "cat"; box.hidden = true;
+  nav.appendChild(box);
+  return box;
 });
+const unitDet = {};
+playlist.forEach((p, i) => {
+  const chiave = p.ci + "|" + p.unit;
+  let det = unitDet[chiave];
+  if (!det) {
+    det = unitDet[chiave] = document.createElement("details");
+    det.innerHTML = `<summary><span class="num">${numUnit(p.unit)}</span><span class="nome"></span><span class="freccia">›</span></summary><ul class="tracce"></ul>`;
+    det.querySelector(".nome").textContent = NOMI_UNIT[p.unit] || p.unit;
+    det.querySelector("summary").addEventListener("click", e => {
+      e.preventDefault();   // l'apertura la gestiamo noi, con l'animazione
+      const bt = det.querySelectorAll(".tracce button");
+      if (bt.length === 1) bt[0].click();          // Unit con un solo file (es. video): parte direttamente
+      else if (det.classList.contains("aperta")) animaUnit(det, false); else apriUnit(det);
+    });
+    caselle[p.ci].appendChild(det);
+  }
+  const li = document.createElement("li"), b = document.createElement("button");
+  b.textContent = p.id; b.dataset.i = i;
+  b.title = `${CATEGORIE[p.ci].nome} – Unit ${numUnit(p.unit)} – ${p.id}`;
+  // la nuova traccia eredita lo stato: in pausa resta in pausa, in riproduzione parte
+  b.addEventListener("click", () => { riproduci(i, !audio.paused); mostra("audio"); chiudiMenu(); });
+  li.appendChild(b);
+  det.querySelector(".tracce").appendChild(li);
+});
+function mostraCategoria(ci) {
+  schede.querySelectorAll(".scheda").forEach((t, k) => t.classList.toggle("attiva", k === ci));
+  caselle.forEach((box, k) => { box.hidden = k !== ci; });
+}
+mostraCategoria(0);
 
 // --- Apertura/chiusura animata delle Unit ---
 const riduciMovimento = matchMedia("(prefers-reduced-motion: reduce)");
@@ -431,22 +645,27 @@ function apriUnit(det) {
 }
 
 // --- Menu a scomparsa (solo telefono) ---
-const menuBtn = $("apri-menu"), velo = $("velo");
-function apriMenu() {
-  nav.classList.add("aperto");
+const menuBtn = $("apri-menu"), libriBtn = $("apri-libri"), velo = $("velo"), libriNav = $("libri");
+function apriMenu(pannello = nav) {
+  chiudiMenu(false);
+  pannello.classList.add("aperto");
   velo.classList.add("visibile");
-  menuBtn.setAttribute("aria-expanded", "true");
-  $("chiudi").focus();
+  (pannello === nav ? menuBtn : libriBtn).setAttribute("aria-expanded", "true");
+  pannello.querySelector(".menu-testa button").focus();
 }
-function chiudiMenu() {
-  if (!nav.classList.contains("aperto")) return;
-  nav.classList.remove("aperto");
+function chiudiMenu(focus = true) {
+  const p = [nav, libriNav].find(x => x.classList.contains("aperto"));
+  if (!p) return;
+  p.classList.remove("aperto");
   velo.classList.remove("visibile");
   menuBtn.setAttribute("aria-expanded", "false");
-  menuBtn.focus();
+  libriBtn.setAttribute("aria-expanded", "false");
+  if (focus) (p === nav ? menuBtn : libriBtn).focus();
 }
-menuBtn.addEventListener("click", apriMenu);
-$("chiudi").addEventListener("click", chiudiMenu);
+menuBtn.addEventListener("click", () => apriMenu(nav));
+libriBtn.addEventListener("click", () => apriMenu(libriNav));
+$("chiudi").addEventListener("click", () => chiudiMenu());
+$("chiudi-libri").addEventListener("click", () => chiudiMenu());
 velo.addEventListener("click", chiudiMenu);
 document.addEventListener("keydown", e => { if (e.key === "Escape") chiudiMenu(); });
 
@@ -455,7 +674,7 @@ const mobile = matchMedia("(max-width: 800px)");
 let tocco = null;
 document.addEventListener("touchstart", e => {
   // non interferire con la barra di avanzamento, il volume e i menu a tendina
-  if (!mobile.matches || e.touches.length !== 1 || e.target.closest("input[type=range], select")) { tocco = null; return; }
+  if (!mobile.matches || e.touches.length !== 1 || e.target.closest("input, select") || (e.target.closest("#pdf-scroll") && $("pdf-scroll").scrollWidth > $("pdf-scroll").clientWidth + 2)) { tocco = null; return; }
   tocco = { x: e.touches[0].clientX, y: e.touches[0].clientY };
 }, { passive: true });
 document.addEventListener("touchcancel", () => { tocco = null; }, { passive: true });
@@ -465,7 +684,9 @@ document.addEventListener("touchend", e => {
   const dy = e.changedTouches[0].clientY - tocco.y;
   tocco = null;
   if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return;   // serve un gesto orizzontale deciso
-  if (dx > 0) apriMenu(); else chiudiMenu();
+  const sx = nav.classList.contains("aperto"), dxp = libriNav.classList.contains("aperto");
+  if (dx > 0) { if (dxp) chiudiMenu(); else apriMenu(nav); }      // destra: chiude i libri, o apre le tracce
+  else { if (sx) chiudiMenu(); else apriMenu(libriNav); }          // sinistra: chiude le tracce, o apre i libri
 }, { passive: true });
 
 // --- Funzioni player ---
@@ -482,26 +703,32 @@ function riproduci(i, avvia = true) {
   audio.playbackRate = parseFloat($("velocita").value);
   $("errore").style.display = "none";
   if (avvia) audio.play().catch(() => {});
-  else audio.pause();
+  else { audio.pause(); iconaPlay(false); }   // cambiando src non sempre arriva l'evento "pause": aggiorno l'icona a mano
   aggiornaInterfaccia();
   try { localStorage.setItem("headway-ultima", p.src); } catch (e) {}
 }
 
 function aggiornaInterfaccia() {
-  const p = playlist[corrente];
-  const [, numero, nomeCartella] = p.unit.match(/^Unit\s*(\d+)\s*-\s*(.*)$/i) || [, p.u + 1, p.unit];
-  const nome = p.titolo || nomeCartella;
-  $("titolo").textContent = `Unit ${parseInt(numero, 10)} – ${nome}`;
-  $("sottotitolo").textContent = `Traccia ${pad(p.n)}`;
-  document.querySelectorAll(".tracce button.attiva").forEach(b => b.classList.remove("attiva"));
-  const det = nav.querySelector(`details[data-unit="${p.u}"]`);
-  apriUnit(det);
-  const btns = det.querySelectorAll(".tracce button");
-  const idx = playlist.filter(x => x.u === p.u).findIndex(x => x.n === p.n);
-  btns[idx].classList.add("attiva");
+  const p = playlist[corrente], c = CATEGORIE[p.ci], n = numUnit(p.unit);
+  const titolo = `Unit ${n}` + (NOMI_UNIT[p.unit] ? ` – ${NOMI_UNIT[p.unit]}` : "");
+  $("titolo").textContent = titolo;
+  $("sottotitolo").textContent = `${c.nome} · ${c.tipo === "video" ? "Video" : "Traccia " + p.id}`;
+  $("mini-testo").textContent = `${titolo} · ${c.nome}`;
+  $("mini").hidden = vista !== "libro";
+  const video = p.tipo === "video";
+  $("stage").hidden = !video;                        // il video compare solo per i file video
+  $("schermo-intero").hidden = !video;
+  controlliSu(video);
+  mostraControlli();
+  mostraCategoria(p.ci);
+  nav.querySelectorAll(".tracce button.attiva").forEach(b => b.classList.remove("attiva"));
+  const b = nav.querySelector(`.tracce button[data-i="${corrente}"]`);
+  b.classList.add("attiva");
+  apriUnit(b.closest("details"));
   ["seek", "play", "indietro10", "avanti10"].forEach(id => $(id).disabled = false);
-  $("prec").disabled = corrente === 0;
-  $("succ").disabled = corrente === playlist.length - 1;
+  const stessa = k => playlist[k] && playlist[k].ci === p.ci;   // precedente/successiva restano nella categoria
+  $("prec").disabled = !stessa(corrente - 1);
+  $("succ").disabled = !stessa(corrente + 1);
 }
 
 $("play").addEventListener("click", () => audio.paused ? audio.play() : audio.pause());
@@ -515,8 +742,14 @@ $("avanti10").addEventListener("click", () => audio.currentTime = Math.min(audio
 
 const ICONA_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.5-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>';
 const ICONA_PAUSA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
-audio.addEventListener("play",  () => { $("play").innerHTML = ICONA_PAUSA; $("play").setAttribute("aria-label", "Pausa"); });
-audio.addEventListener("pause", () => { $("play").innerHTML = ICONA_PLAY; $("play").setAttribute("aria-label", "Riproduci"); });
+function iconaPlay(inPlay) {
+  for (const id of ["play", "mini-play"]) {
+    $(id).innerHTML = inPlay ? ICONA_PAUSA : ICONA_PLAY;
+    $(id).setAttribute("aria-label", inPlay ? "Pausa" : "Riproduci");
+  }
+}
+audio.addEventListener("play", () => iconaPlay(true));
+audio.addEventListener("pause", () => iconaPlay(false));
 audio.addEventListener("loadedmetadata", () => { $("seek").max = audio.duration; $("t-tot").textContent = formatta(audio.duration); });
 audio.addEventListener("timeupdate", () => {
   if (!seekInUso) $("seek").value = audio.currentTime;
@@ -524,7 +757,7 @@ audio.addEventListener("timeupdate", () => {
 });
 audio.addEventListener("ended", () => {
   if ($("ripeti").checked) { audio.currentTime = 0; audio.play(); }
-  else if ($("auto").checked && corrente < playlist.length - 1) riproduci(corrente + 1);
+  else if ($("auto").checked && playlist[corrente + 1] && playlist[corrente + 1].ci === playlist[corrente].ci) riproduci(corrente + 1);
 });
 audio.addEventListener("error", () => {
   if (corrente < 0) return;
@@ -544,11 +777,192 @@ $("volume").addEventListener("input", e => audio.volume = e.target.value);
 // Scorciatoie da tastiera
 document.addEventListener("keydown", e => {
   if (["INPUT", "SELECT"].includes(e.target.tagName) && e.target.type !== "checkbox") return;
+  if (vista === "libro") {   // nella vista libro le frecce girano pagina
+    if (e.code === "ArrowLeft" || e.code === "PageUp") vaiA(pagina - 1);
+    else if (e.code === "ArrowRight" || e.code === "PageDown") vaiA(pagina + 1);
+    return;
+  }
   if (corrente < 0) return;
   if (e.code === "Space" && e.target.tagName !== "BUTTON") { e.preventDefault(); $("play").click(); }
   if (e.code === "ArrowLeft")  $("indietro10").click();
   if (e.code === "ArrowRight") $("avanti10").click();
 });
+
+// ===================== LIBRI (PDF) =====================
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+let vista = "libro", pdfDoc = null, libro = -1, pagina = 1, totale = 0, zoom = 1, caricamento = 0;
+let stato = { libro: 0, pagine: {} };
+try { Object.assign(stato, JSON.parse(localStorage.getItem("headway-libri")) || {}); } catch (e) {}
+const salva = () => { try { localStorage.setItem("headway-libri", JSON.stringify(stato)); } catch (e) {} };
+
+LIBRI.forEach((l, i) => {
+  const b = document.createElement("button");
+  b.className = "voce-libro";
+  b.innerHTML = `<span class="num">${l.sigla}</span><span class="nome">${l.nome}</span>`;
+  b.addEventListener("click", () => { apriLibro(i); chiudiMenu(); });
+  libriNav.appendChild(b);
+});
+
+// Passa tra vista audio (player) e vista libro (PDF)
+function mostra(v) {
+  vista = v;
+  $("vista-audio").hidden = v !== "audio";
+  $("vista-libro").hidden = v !== "libro";
+  $("mini").hidden = !(v === "libro" && corrente >= 0);
+  libriNav.querySelectorAll(".voce-libro").forEach((b, i) => b.classList.toggle("attiva", v === "libro" && i === libro));
+  if (v === "libro") disegna();
+}
+
+// pdf.js viene scaricato solo la prima volta che serve un PDF
+let pdfjsPromessa = null;
+function caricaPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve();
+  return pdfjsPromessa || (pdfjsPromessa = new Promise((ok, ko) => {
+    const sc = document.createElement("script");
+    sc.src = PDFJS;
+    sc.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; ok(); };
+    sc.onerror = () => { pdfjsPromessa = null; ko(new Error("pdf.js non raggiungibile")); };
+    document.head.appendChild(sc);
+  }));
+}
+
+async function apriLibro(i) {
+  if (i === libro && pdfDoc) return mostra("libro");
+  libro = i; stato.libro = i; salva();
+  const l = LIBRI[i], mio = ++caricamento, st = $("pdf-stato");
+  if (pdfDoc) { pdfDoc.destroy(); pdfDoc = null; }
+  totale = 0; zoom = 1;
+  $("pdf-holder").replaceChildren();
+  st.textContent = "Caricamento…";
+  aggiornaBarra();
+  mostra("libro");
+  const url = new URL([CARTELLA_LIBRI, l.file].map(encodeURIComponent).join("/"), location.href).href;
+  try {
+    await caricaPdfJs();
+    const doc = await pdfjsLib.getDocument({ url }).promise;
+    if (mio !== caricamento) { doc.destroy(); return; }
+    pdfDoc = doc; totale = doc.numPages;
+    pagina = Math.min(Math.max(1, stato.pagine[l.file] || 1), totale);
+    st.textContent = "";
+    aggiornaBarra();
+    disegna();
+  } catch (err) {
+    if (mio !== caricamento) return;
+    st.textContent = `Impossibile aprire ${CARTELLA_LIBRI}/${l.file}. ` + (location.protocol === "file:"
+      ? "Aprendo la pagina direttamente dal disco il browser blocca i PDF: serve un server locale (es. python -m http.server)."
+      : "Controlla il nome del file e la connessione (il visualizzatore PDF si scarica da internet).");
+    const a = document.createElement("a");
+    a.href = url; a.target = "_blank"; a.textContent = " Apri nel browser";
+    st.append(a);
+  }
+}
+
+// Disegna la pagina corrente su un canvas (larghezza = area disponibile × zoom)
+let inCorso = false, ancora = false, compito = null;
+async function disegna() {
+  const area = $("pdf-scroll");
+  if (!pdfDoc || !area.clientWidth || vista !== "libro") return;
+  if (inCorso) { ancora = true; if (compito) compito.cancel(); return; }
+  inCorso = true;
+  try {
+    do {
+      ancora = false;
+      const doc = pdfDoc, pag = await doc.getPage(pagina);
+      const v1 = pag.getViewport({ scale: 1 });
+      const css = Math.max(0.1, (area.clientWidth - 16) / v1.width) * zoom;
+      let sc = css * Math.min(window.devicePixelRatio || 1, 2);
+      const px = v1.width * v1.height * sc * sc;
+      if (px > 16e6) sc *= Math.sqrt(16e6 / px);          // limite di memoria sui telefoni
+      const vp = pag.getViewport({ scale: sc }), c = document.createElement("canvas");
+      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+      c.style.width = Math.floor(v1.width * css) + "px";
+      c.style.height = Math.floor(v1.height * css) + "px";
+      compito = pag.render({ canvasContext: c.getContext("2d"), viewport: vp });
+      try { await compito.promise; }
+      catch (e) { if (e && e.name === "RenderingCancelledException") continue; throw e; }
+      if (doc === pdfDoc) $("pdf-holder").replaceChildren(c);
+    } while (ancora);
+  } catch (e) { /* documento chiuso durante il disegno */ }
+  inCorso = false;
+}
+
+function aggiornaBarra() {
+  $("pg").value = pagina; $("pg").max = totale || 1;
+  $("pg-tot").textContent = totale ? "/ " + totale : "";
+  $("pg-prec").disabled = !totale || pagina <= 1;
+  $("pg-succ").disabled = !totale || pagina >= totale;
+  $("zoom-val").textContent = Math.round(zoom * 100) + "%";
+}
+function vaiA(n) {
+  if (!pdfDoc) return;
+  n = Math.min(Math.max(1, n || pagina), totale);
+  if (n !== pagina) {
+    pagina = n;
+    stato.pagine[LIBRI[libro].file] = n; salva();     // ricorda la pagina per ogni libro
+    $("pdf-scroll").scrollTop = 0;
+    disegna();
+  }
+  aggiornaBarra();
+}
+function zoomA(z) { zoom = Math.min(4, Math.max(0.5, z)); aggiornaBarra(); disegna(); }
+
+$("pg-prec").addEventListener("click", () => vaiA(pagina - 1));
+$("pg-succ").addEventListener("click", () => vaiA(pagina + 1));
+$("pg").addEventListener("change", e => vaiA(parseInt(e.target.value, 10)));
+$("zoom-meno").addEventListener("click", () => zoomA(zoom / 1.25));
+$("zoom-piu").addEventListener("click", () => zoomA(zoom * 1.25));
+$("zoom-val").addEventListener("click", () => zoomA(1));
+$("mini-info").addEventListener("click", () => mostra("audio"));
+// Con un video i controlli passano sopra l'immagine; con un audio tornano nella scheda
+const blocchi = [...document.querySelectorAll(".barra, .comandi, .opzioni")];
+function controlliSu(sopra) {
+  blocchi.forEach(el => {
+    if (sopra) $("overlay").appendChild(el);
+    else $("vista-audio").insertBefore(el, $("errore"));
+  });
+}
+
+// Controlli che scompaiono dopo qualche secondo e tornano con mouse/tocco/tastiera
+let timerCtrl;
+function mostraControlli() {
+  const st = $("stage");
+  st.classList.remove("nascosti");
+  clearTimeout(timerCtrl);
+  if (audio.paused) return;                          // in pausa restano sempre visibili
+  timerCtrl = setTimeout(() => {
+    if ($("overlay").matches(":hover")) mostraControlli(); else st.classList.add("nascosti");
+  }, 2800);
+}
+let ultimoTocco = { tipo: "", nascosti: false };
+$("stage").addEventListener("pointerdown", e => {
+  ultimoTocco = { tipo: e.pointerType, nascosti: $("stage").classList.contains("nascosti") };
+});
+["pointermove", "pointerdown", "keydown", "focusin", "input"].forEach(ev => $("stage").addEventListener(ev, mostraControlli));
+$("stage").addEventListener("mouseleave", () => { if (!audio.paused) $("stage").classList.add("nascosti"); });
+audio.addEventListener("play", mostraControlli);
+audio.addEventListener("pause", mostraControlli);
+audio.addEventListener("click", () => {
+  if (ultimoTocco.tipo === "touch" && ultimoTocco.nascosti) return;   // primo tocco: solo mostra i controlli
+  if (audio.paused) audio.play(); else audio.pause();
+});
+$("schermo-intero").addEventListener("click", () => {
+  const st = $("stage");
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (st.requestFullscreen) st.requestFullscreen();
+  else if (audio.webkitEnterFullscreen) audio.webkitEnterFullscreen();   // iPhone
+});
+$("mini-play").addEventListener("click", () => { if (audio.paused) audio.play(); else audio.pause(); });
+let largPrec = 0;
+new ResizeObserver(() => {
+  const w = $("pdf-scroll").clientWidth;
+  if (Math.abs(w - largPrec) > 24) { largPrec = w; disegna(); }
+}).observe($("pdf-scroll"));
+
+iconaPlay(false);
+// Schermata iniziale: l'ultimo libro aperto (di default lo Student's Book) alla pagina in cui era rimasto
+apriLibro(LIBRI[stato.libro] ? stato.libro : 0);
 
 // Ripristina l'ultima traccia ascoltata (senza avviarla)
 try {

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Headway Beginner – Audio</title>
+<style>
+  /* =====================================================
+     COLORE DEL TEMA: cambia solo questa riga!
+     Tutte le altre tonalità vengono calcolate da qui.
+     ===================================================== */
+  :root {
+    --tema: #8fcf6a;
+
+    --tema-scuro:   color-mix(in srgb, var(--tema) 55%, #14301a);
+    --tema-medio:   color-mix(in srgb, var(--tema) 70%, #ffffff);
+    --tema-chiaro:  color-mix(in srgb, var(--tema) 22%, #ffffff);
+    --tema-sfondo:  color-mix(in srgb, var(--tema) 9%,  #ffffff);
+    --testo:        color-mix(in srgb, var(--tema) 18%, #14201a);
+    --testo-soft:   color-mix(in srgb, var(--tema) 30%, #5d6a62);
+    --bordo:        color-mix(in srgb, var(--tema) 40%, #ffffff);
+    --raggio: 14px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  summary, button, .comandi, .tempi {
+    -webkit-user-select: none; user-select: none;
+    touch-action: manipulation;
+  }
+  html, body { margin: 0; }
+  html { overscroll-behavior-y: none; }
+  body {
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    background: var(--tema-sfondo);
+    color: var(--testo);
+    min-height: 100vh;
+    min-height: 100dvh;   /* altezza realmente visibile su telefono (senza barra del browser) */
+    display: flex;
+    flex-direction: column;
+  }
+  :focus-visible { outline: 3px solid var(--tema-scuro); outline-offset: 2px; }
+
+  header {
+    background: var(--tema);
+    padding: 22px 24px 18px;
+    border-bottom: 4px solid var(--tema-scuro);
+  }
+  header h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -.5px;
+    color: var(--testo);
+  }
+  header p { margin: 4px 0 0; color: var(--tema-scuro); font-weight: 600; }
+
+  .layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 330px minmax(0, 1fr);
+    gap: 20px;
+    padding: 20px;
+    max-width: 1150px;
+    width: 100%;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  /* ---------- Elenco unit ---------- */
+  nav {
+    background: #fff;
+    border: 2px solid var(--bordo);
+    border-radius: var(--raggio);
+    overflow: hidden;
+  }
+  details { border-bottom: 1px solid var(--bordo); }
+  details:last-child { border-bottom: 0; }
+  summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+  }
+  summary::-webkit-details-marker { display: none; }
+  @media (hover: hover) { summary:hover { background: var(--tema-chiaro); } }
+  summary:active, details.aperta > summary { background: var(--tema-chiaro); }
+  .num {
+    flex: none;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--tema);
+    color: var(--testo);
+    display: grid; place-items: center;
+    font-size: .95rem;
+  }
+  .nome { flex: 1; line-height: 1.25; }
+  .freccia { transition: transform .2s; color: var(--tema-scuro); }
+  details.aperta .freccia { transform: rotate(90deg); }
+
+  ul.tracce { list-style: none; margin: 0; padding: 6px 10px 12px; display: flex; flex-wrap: wrap; gap: 6px; overflow: hidden; }
+  .tracce button {
+    min-width: 46px;
+    padding: 8px 10px;
+    border: 2px solid var(--bordo);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--testo);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tracce button:hover { background: var(--tema-chiaro); }
+  .tracce button.attiva { background: var(--tema-scuro); border-color: var(--tema-scuro); color: #fff; }
+
+  /* ---------- Player ---------- */
+  .player {
+    position: sticky;
+    top: 20px;
+    background: #fff;
+    border: 2px solid var(--bordo);
+    border-radius: var(--raggio);
+    padding: 28px;
+  }
+  .ora small { color: var(--testo-soft); font-weight: 600; }
+  .ora h2 { margin: 4px 0 0; font-size: clamp(1.4rem, 3vw, 2rem); line-height: 1.15; }
+  .ora .traccia { margin-top: 6px; color: var(--tema-scuro); font-weight: 700; font-size: 1.15rem; }
+
+  .barra { margin: 28px 0 8px; }
+  input[type=range] { width: 100%; accent-color: var(--tema-scuro); height: 28px; cursor: pointer; }
+  .tempi { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; color: var(--testo-soft); font-size: .9rem; }
+
+  .comandi { display: flex; justify-content: center; align-items: center; gap: 14px; margin: 18px 0; }
+  .comandi button {
+    border: 0; cursor: pointer;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--tema-chiaro); color: var(--testo);
+    font-size: 1.2rem; display: grid; place-items: center;
+  }
+  .comandi button:hover:not(:disabled) { background: var(--tema); }
+  .comandi button:disabled { opacity: .4; cursor: default; }
+  .comandi #play { width: 72px; height: 72px; background: var(--tema); font-size: 1.7rem; }
+  .comandi #play:hover { background: var(--tema-medio); }
+
+  .opzioni {
+    display: flex; flex-wrap: wrap; gap: 18px 28px; justify-content: center;
+    padding-top: 18px; border-top: 1px solid var(--bordo);
+    font-weight: 600; font-size: .95rem;
+  }
+  .opzioni label { display: flex; align-items: center; gap: 8px; }
+  .opzioni select {
+    font: inherit; padding: 5px 8px; border-radius: 8px;
+    border: 2px solid var(--bordo); background: #fff; color: var(--testo);
+  }
+  .opzioni input[type=checkbox] { accent-color: var(--tema-scuro); width: 18px; height: 18px; }
+  .opzioni input[type=range] { width: 110px; }
+
+  .comandi svg { display: block; width: 24px; height: 24px; }
+  .comandi #indietro10 svg, .comandi #avanti10 svg { width: 30px; height: 30px; }
+  .comandi #play svg { width: 34px; height: 34px; }
+
+  #errore {
+    margin-top: 16px; padding: 10px 14px; border-radius: 10px;
+    background: #fdecea; color: #8a2c22; font-weight: 600; display: none;
+  }
+
+  /* ---------- Base: elementi che esistono solo da telefono ---------- */
+  body { overflow-x: hidden; }
+  header { display: flex; align-items: center; gap: 14px; }
+  .ora h2, #errore { overflow-wrap: anywhere; }
+  #apri-menu, .menu-testa, .velo { display: none; }
+  #apri-menu {
+    flex: none; border: 0; cursor: pointer; font: inherit; font-weight: 800;
+    padding: 10px 14px; border-radius: 999px;
+    background: var(--tema-scuro); color: #fff;
+  }
+  .menu-testa {
+    position: sticky; top: 0; z-index: 1;
+    justify-content: space-between; align-items: center;
+    padding: 12px 14px; background: var(--tema); border-bottom: 3px solid var(--tema-scuro);
+  }
+  .menu-testa button {
+    border: 0; cursor: pointer; width: 38px; height: 38px; border-radius: 50%;
+    background: var(--tema-chiaro); color: var(--testo); font-size: 1rem;
+  }
+
+  @media (max-width: 800px) {
+    header { position: sticky; top: 0; z-index: 10; padding: 12px 14px; }
+    header h1 { font-size: 1.35rem; }
+    header p { font-size: .85rem; }
+    #apri-menu { display: inline-block; }
+
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+    .player { position: static; padding: 20px 16px; }
+
+    /* Elenco unit: menu a scomparsa da sinistra */
+    nav {
+      position: fixed; inset: 0 auto 0 0;
+      width: min(88vw, 340px);
+      z-index: 30;
+      border-radius: 0; border-width: 0 2px 0 0;
+      overflow-y: auto; overscroll-behavior: contain;
+      transform: translateX(-100%);
+      visibility: hidden;
+      transition: transform .25s ease, visibility 0s linear .25s;
+    }
+    nav.aperto { transform: none; visibility: visible; transition: transform .25s ease; }
+    .menu-testa { display: flex; }
+    .velo {
+      display: block; position: fixed; inset: 0; z-index: 20;
+      background: rgba(20, 40, 25, .45);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .velo.visibile { opacity: 1; pointer-events: auto; }
+
+    /* Comandi più piccoli per non uscire dallo schermo */
+    .comandi { gap: 10px; }
+    .comandi button { width: 44px; height: 44px; font-size: 1.05rem; }
+    .comandi #play { width: 64px; height: 64px; }
+    .comandi svg { width: 22px; height: 22px; }
+    .comandi #indietro10 svg, .comandi #avanti10 svg { width: 28px; height: 28px; }
+    .comandi #play svg { width: 30px; height: 30px; }
+    .opzioni { gap: 12px 20px; padding-top: 14px; }
+    .barra { margin: 18px 0 4px; }
+    .comandi { margin: 12px 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .freccia, nav, nav.aperto, .velo { transition: none; }
+  }
+
+  /* ---------- Viewer PDF, pannello libri, layout a schermo intero ---------- */
+  [hidden] { display: none !important; }
+  body { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+  .layout { grid-template-columns: 330px minmax(0, 1fr) 240px; grid-template-rows: minmax(0, 1fr); max-width: 1400px; min-height: 0; overflow: hidden; }
+  nav, aside, .player { max-height: 100%; overflow-y: auto; }
+  .player { position: static; flex: 0 1 auto; min-height: 0; }
+  .centro { align-self: stretch; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+  aside { background: #fff; border: 2px solid var(--bordo); border-radius: var(--raggio); align-self: start; }
+  .voce-libro {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
+    border: 0; border-bottom: 1px solid var(--bordo); background: #fff; color: var(--testo);
+    font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+  }
+  .voce-libro:last-of-type { border-bottom: 0; }
+  @media (hover: hover) { .voce-libro:hover { background: var(--tema-chiaro); } }
+  .voce-libro:active, .voce-libro.attiva { background: var(--tema-chiaro); }
+  .libro { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fff; border: 2px solid var(--bordo); border-radius: var(--raggio); overflow: hidden; }
+  .pdf-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; background: var(--tema-chiaro); border-bottom: 1px solid var(--bordo); }
+  .pdf-barra button, .mini button { border: 0; cursor: pointer; min-width: 38px; height: 38px; border-radius: 10px; background: #fff; color: var(--testo); font: inherit; font-weight: 800; font-size: 1.25rem; }
+  .pdf-barra button:hover:not(:disabled) { background: var(--tema); }
+  .pdf-barra button:disabled { opacity: .4; cursor: default; }
+  #zoom-val { font-size: .9rem; padding: 0 8px; }
+  .pdf-barra input { width: 60px; height: 38px; border-radius: 10px; border: 2px solid var(--bordo); font: inherit; text-align: center; }
+  .sp { flex: 1; }
+  .pdf-scroll { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; background: color-mix(in srgb, var(--tema) 12%, #d6dad7); }
+  .pdf-holder { width: max-content; min-width: 100%; display: flex; justify-content: center; padding: 8px; }
+  .pdf-holder canvas { display: block; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+  #pdf-stato { padding: 24px; text-align: center; font-weight: 600; overflow-wrap: anywhere; }
+  #pdf-stato:empty { display: none; }
+  .mini { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--tema-chiaro); border-top: 2px solid var(--bordo); }
+  .mini svg { width: 20px; height: 20px; }
+  #mini-play { flex: none; border-radius: 50% !important; width: 42px; height: 42px; background: var(--tema) !important; display: grid; place-items: center; }
+  #mini-info { flex: 1; min-width: 0; height: auto; padding: 2px 4px; background: none; text-align: left; font-size: .95rem; }
+  #mini-info small { display: block; color: var(--testo-soft); font-weight: 600; }
+  #mini-info span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #apri-libri { display: none; flex: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; padding: 10px 14px; border-radius: 999px; background: var(--tema-scuro); color: #fff; }
+
+  @media (max-width: 800px) {
+    header h1 { font-size: 1.1rem; }
+    header p { display: none; }
+    header > div { flex: 1; min-width: 0; }
+    #apri-menu, #apri-libri { display: inline-block; padding: 9px 12px; font-size: .9rem; }
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+    nav { max-height: none; }
+    aside {
+      position: fixed; inset: 0 0 0 auto; width: min(88vw, 340px); z-index: 30; max-height: none;
+      border-radius: 0; border-width: 0 0 0 2px; overscroll-behavior: contain;
+      transform: translateX(100%); visibility: hidden;
+      transition: transform .25s ease, visibility 0s linear .25s;
+    }
+    aside.aperto { transform: none; visibility: visible; transition: transform .25s ease; }
+    .pdf-barra { gap: 6px; padding: 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) { aside, aside.aperto { transition: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <button id="apri-menu" aria-controls="elenco" aria-expanded="false">☰ Tracce</button>
+  <div>
+    <h1>Headway Beginner</h1>
+    <p>5th edition</p>
+  </div>
+  <button id="apri-libri" aria-controls="libri" aria-expanded="false">Libri</button>
+</header>
+
+<div class="layout">
+  <nav id="elenco" aria-label="Unit del libro">
+    <div class="menu-testa"><strong>Unit e tracce</strong><button id="chiudi" aria-label="Chiudi menu">✕</button></div>
+  </nav>
+  <div class="velo" id="velo"></div>
+
+  <main class="centro">
+  <section class="player" id="vista-audio" hidden>
+    <div class="ora">
+      <small>In riproduzione</small>
+      <h2 id="titolo">Scegli una traccia dall’elenco</h2>
+      <div class="traccia" id="sottotitolo"></div>
+    </div>
+
+    <div class="barra">
+      <input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Posizione" disabled>
+      <div class="tempi"><span id="t-corr">0:00</span><span id="t-tot">0:00</span></div>
+    </div>
+
+    <div class="comandi">
+      <button id="indietro10" title="Indietro di 10 secondi" aria-label="Indietro di 10 secondi" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5a8 8 0 1 1-7.5 5.2"/><path d="M14.5 2.5 11.5 5l3 2.5"/><text x="12" y="16" text-anchor="middle" font-size="7.5" font-weight="800" font-family="Arial, Helvetica, sans-serif" fill="currentColor" stroke="none">10</text></svg></button>
+      <button id="prec" title="Traccia precedente" aria-label="Traccia precedente" disabled><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6v12"/><path d="M18 6.5v11L9 12z"/></svg></button>
+      <button id="play" title="Riproduci / Pausa" aria-label="Riproduci" disabled><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.5-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></button>
+      <button id="succ" title="Traccia successiva" aria-label="Traccia successiva" disabled><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M18 6v12"/><path d="M6 6.5v11L15 12z"/></svg></button>
+      <button id="avanti10" title="Avanti di 10 secondi" aria-label="Avanti di 10 secondi" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><g transform="translate(24 0) scale(-1 1)"><path d="M12 5a8 8 0 1 1-7.5 5.2"/><path d="M14.5 2.5 11.5 5l3 2.5"/></g><text x="12" y="16" text-anchor="middle" font-size="7.5" font-weight="800" font-family="Arial, Helvetica, sans-serif" fill="currentColor" stroke="none">10</text></svg></button>
+    </div>
+
+    <div class="opzioni">
+      <label>Velocità
+        <select id="velocita">
+          <option value="0.6">0.6×</option>
+          <option value="0.75">0.75×</option>
+          <option value="0.9">0.9×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.25">1.25×</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="auto"> Traccia successiva in automatico</label>
+      <label><input type="checkbox" id="ripeti"> Ripeti traccia</label>
+      <label>Volume <input type="range" id="volume" min="0" max="1" step="0.05" value="1"></label>
+    </div>
+
+    <div id="errore" role="alert"></div>
+    <audio id="audio" preload="metadata"></audio>
+  </section>
+
+  <section class="libro" id="vista-libro">
+    <div class="pdf-barra">
+      <button id="pg-prec" aria-label="Pagina precedente" disabled>‹</button>
+      <input id="pg" type="number" min="1" aria-label="Pagina"><span id="pg-tot"></span>
+      <button id="pg-succ" aria-label="Pagina successiva" disabled>›</button>
+      <span class="sp"></span>
+      <button id="zoom-meno" aria-label="Riduci">−</button>
+      <button id="zoom-val" aria-label="Zoom 100%">100%</button>
+      <button id="zoom-piu" aria-label="Ingrandisci">+</button>
+    </div>
+    <div class="pdf-scroll" id="pdf-scroll"><div class="pdf-holder" id="pdf-holder"></div><div id="pdf-stato"></div></div>
+    <div class="mini" id="mini" hidden>
+      <button id="mini-play" aria-label="Riproduci"></button>
+      <button id="mini-info"><small>Audio – apri il player</small><span id="mini-testo"></span></button>
+    </div>
+  </section>
+  </main>
+  <aside id="libri" aria-label="Libri">
+    <div class="menu-testa"><strong>Libri</strong><button id="chiudi-libri" aria-label="Chiudi menu">✕</button></div>
+  </aside>
+</div>
+
+<script>
+/* =====================================================
+   CONFIGURAZIONE
+   - CARTELLA_AUDIO: nome della cartella principale
+     (deve stare accanto a questo file HTML)
+   - Per ogni Unit: [ "nome esatto della cartella", [numeri dei file mp3] ]
+   Esempio: ["Unit 01 - Hello everybody!", [1,2,3,4,5]]
+   - Terzo elemento facoltativo: titolo da mostrare a schermo, utile
+     quando contiene caratteri non ammessi nei nomi file (es. "?")
+   ===================================================== */
+const CARTELLA_AUDIO = "Audio";
+
+const intervallo = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+
+const UNITS = [
+  ["Unit 01 - Hello!", intervallo(1, 14)],
+  ["Unit 02 - Your World", intervallo(1, 15)],
+  ["Unit 03 - All About You", intervallo(1, 11)],
+  ["Unit 04 - Family and Friends", intervallo(1, 17)],
+  ["Unit 05 - Thinks I Like!", intervallo(1, 17)],
+  ["Unit 06 - Every Day", intervallo(1, 16)],
+  ["Unit 07 - Favourite Things", intervallo(1, 10)],
+  ["Unit 08 - Home Sweet Home", intervallo(1, 12)],
+  ["Unit 09 - Past Times", intervallo(1, 18)],
+  ["Unit 10 - We Had a Good Time!", intervallo(1, 11)],
+  ["Unit 11 - We Can Do It!", intervallo(1, 11)],
+  ["Unit 12 - Thank You Very Much!", intervallo(1, 10)],
+  ["Unit 13 - What's Happening Now", intervallo(1, 12), "What's Happening Now?"],
+  ["Unit 14 - Let's Go!", intervallo(1, 9)],
+];
+
+/* =====================================================
+   UTILITÀ (non usata dalla pagina): converte un elenco di
+   percorsi, come quello dei comandi "tree" o "find", nel
+   testo da incollare al posto di UNITS.
+   Uso dalla console del browser (F12), con String.raw per
+   non perdere i backslash di Windows:
+
+     copy(percorsiAUnits(String.raw`./Unit 01 - Hello!\01.mp3
+     ./Unit 01 - Hello!\02.mp3`))
+
+   Accetta sia "\" sia "/" e un eventuale "./" iniziale.
+   I titoli personalizzati (terzo elemento) vanno aggiunti a mano.
+   ===================================================== */
+function percorsiAUnits(testo) {
+  const gruppi = new Map();
+  testo.split(/\r?\n/).forEach(riga => {
+    const parti = riga.trim().replace(/^\.?[\\/]/, "").split(/[\\/]/).filter(Boolean);
+    if (parti.length < 2) return;
+    const m = parti.pop().match(/^(\d+)\.mp3$/i);
+    if (!m) return;
+    const cartella = parti[parti.length - 1];
+    if (!gruppi.has(cartella)) gruppi.set(cartella, []);
+    gruppi.get(cartella).push(parseInt(m[1], 10));
+  });
+  const righe = [...gruppi.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, "it", { numeric: true }))
+    .map(([cartella, nums]) => {
+      nums.sort((a, b) => a - b);
+      const consecutivi = nums.every((n, i) => n === nums[0] + i);
+      const tracce = consecutivi
+        ? `intervallo(${nums[0]}, ${nums[nums.length - 1]})`
+        : `[${nums.join(", ")}]`;
+      return `  [${JSON.stringify(cartella)}, ${tracce}],`;
+    });
+  return "const UNITS = [\n" + righe.join("\n") + "\n];";
+}
+
+/* ===================== CODICE ===================== */
+const $ = id => document.getElementById(id);
+const audio = $("audio");
+const pad = n => String(n).padStart(2, "0");
+
+// Elenco piatto di tutte le tracce, per poter andare avanti/indietro anche tra Unit
+const playlist = [];
+UNITS.forEach(([cartella, tracce, titolo], u) => {
+  tracce.forEach(n => playlist.push({
+    u, n,
+    unit: cartella,
+    titolo,
+    src: [CARTELLA_AUDIO, cartella, pad(n) + ".mp3"].map(encodeURIComponent).join("/")
+  }));
+});
+
+let corrente = -1;
+
+// --- Costruzione elenco ---
+const nav = $("elenco");
+UNITS.forEach(([cartella, tracce, titolo], u) => {
+  const [, numero, nomeCartella] = cartella.match(/^Unit\s*(\d+)\s*-\s*(.*)$/i) || [, u + 1, cartella];
+  const nome = titolo || nomeCartella;
+  const det = document.createElement("details");
+  det.dataset.unit = u;
+  det.innerHTML = `<summary><span class="num">${parseInt(numero, 10)}</span><span class="nome">${nome}</span><span class="freccia">›</span></summary>`;
+  const ul = document.createElement("ul");
+  ul.className = "tracce";
+  tracce.forEach(n => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.textContent = pad(n);
+    b.title = `Unit ${parseInt(numero, 10)} – traccia ${pad(n)}`;
+    b.addEventListener("click", () => {
+      riproduci(playlist.findIndex(p => p.u === u && p.n === n), false);   // si sceglie la traccia, si avvia con ▶
+      mostra("audio");
+      chiudiMenu();
+    });
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+  det.appendChild(ul);
+  det.querySelector("summary").addEventListener("click", e => {
+    e.preventDefault();   // l'apertura la gestiamo noi, con l'animazione
+    if (det.classList.contains("aperta")) animaUnit(det, false); else apriUnit(det);
+  });
+  nav.appendChild(det);
+});
+
+// --- Apertura/chiusura animata delle Unit ---
+const riduciMovimento = matchMedia("(prefers-reduced-motion: reduce)");
+
+function animaUnit(det, apre) {
+  const ul = det.querySelector(".tracce");
+  if (det._anim) det._anim.cancel();
+  det._anim = null;
+  det.classList.toggle("aperta", apre);
+  if (apre) det.open = true; else if (!det.open) return;
+
+  if (riduciMovimento.matches) { det.open = apre; return; }
+
+  const h = ul.offsetHeight + "px";
+  const chiuso = { height: "0px", paddingTop: "0px", paddingBottom: "0px", opacity: 0 };
+  const aperto = { height: h, opacity: 1 };
+  const anim = ul.animate(apre ? [chiuso, aperto] : [aperto, chiuso],
+    { duration: apre ? 260 : 200, easing: apre ? "ease-out" : "ease-in" });
+  det._anim = anim;
+  anim.onfinish = () => { det._anim = null; if (!apre) det.open = false; };
+}
+
+// Apre una Unit e chiude le altre
+function apriUnit(det) {
+  nav.querySelectorAll("details.aperta").forEach(d => { if (d !== det) animaUnit(d, false); });
+  if (!det.classList.contains("aperta")) animaUnit(det, true);
+}
+
+// --- Menu a scomparsa (solo telefono) ---
+const menuBtn = $("apri-menu"), libriBtn = $("apri-libri"), velo = $("velo"), libriNav = $("libri");
+function apriMenu(pannello = nav) {
+  chiudiMenu(false);
+  pannello.classList.add("aperto");
+  velo.classList.add("visibile");
+  (pannello === nav ? menuBtn : libriBtn).setAttribute("aria-expanded", "true");
+  pannello.querySelector(".menu-testa button").focus();
+}
+function chiudiMenu(focus = true) {
+  const p = [nav, libriNav].find(x => x.classList.contains("aperto"));
+  if (!p) return;
+  p.classList.remove("aperto");
+  velo.classList.remove("visibile");
+  menuBtn.setAttribute("aria-expanded", "false");
+  libriBtn.setAttribute("aria-expanded", "false");
+  if (focus) (p === nav ? menuBtn : libriBtn).focus();
+}
+menuBtn.addEventListener("click", () => apriMenu(nav));
+libriBtn.addEventListener("click", () => apriMenu(libriNav));
+$("chiudi").addEventListener("click", () => chiudiMenu());
+$("chiudi-libri").addEventListener("click", () => chiudiMenu());
+velo.addEventListener("click", chiudiMenu);
+document.addEventListener("keydown", e => { if (e.key === "Escape") chiudiMenu(); });
+
+// Swipe: verso destra apre il menu, verso sinistra lo chiude (solo telefono)
+const mobile = matchMedia("(max-width: 800px)");
+let tocco = null;
+document.addEventListener("touchstart", e => {
+  // non interferire con la barra di avanzamento, il volume e i menu a tendina
+  if (!mobile.matches || e.touches.length !== 1 || e.target.closest("input, select") || (e.target.closest("#pdf-scroll") && $("pdf-scroll").scrollWidth > $("pdf-scroll").clientWidth + 2)) { tocco = null; return; }
+  tocco = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+document.addEventListener("touchcancel", () => { tocco = null; }, { passive: true });
+document.addEventListener("touchend", e => {
+  if (!tocco) return;
+  const dx = e.changedTouches[0].clientX - tocco.x;
+  const dy = e.changedTouches[0].clientY - tocco.y;
+  tocco = null;
+  if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return;   // serve un gesto orizzontale deciso
+  const sx = nav.classList.contains("aperto"), dxp = libriNav.classList.contains("aperto");
+  if (dx > 0) { if (dxp) chiudiMenu(); else apriMenu(nav); }      // destra: chiude i libri, o apre le tracce
+  else { if (sx) chiudiMenu(); else apriMenu(libriNav); }          // sinistra: chiude le tracce, o apre i libri
+}, { passive: true });
+
+// --- Funzioni player ---
+function formatta(s) {
+  if (!isFinite(s)) return "0:00";
+  return Math.floor(s / 60) + ":" + pad(Math.floor(s % 60));
+}
+
+function riproduci(i, avvia = true) {
+  if (i < 0 || i >= playlist.length) return;
+  corrente = i;
+  const p = playlist[i];
+  audio.src = p.src;
+  audio.playbackRate = parseFloat($("velocita").value);
+  $("errore").style.display = "none";
+  if (avvia) audio.play().catch(() => {});
+  else audio.pause();
+  aggiornaInterfaccia();
+  try { localStorage.setItem("headway-ultima", p.src); } catch (e) {}
+}
+
+function aggiornaInterfaccia() {
+  const p = playlist[corrente];
+  const [, numero, nomeCartella] = p.unit.match(/^Unit\s*(\d+)\s*-\s*(.*)$/i) || [, p.u + 1, p.unit];
+  const nome = p.titolo || nomeCartella;
+  $("titolo").textContent = `Unit ${parseInt(numero, 10)} – ${nome}`;
+  $("sottotitolo").textContent = `Traccia ${pad(p.n)}`;
+  $("mini-testo").textContent = `Unit ${parseInt(numero, 10)} – ${nome} · ${pad(p.n)}`;
+  $("mini").hidden = vista !== "libro";
+  document.querySelectorAll(".tracce button.attiva").forEach(b => b.classList.remove("attiva"));
+  const det = nav.querySelector(`details[data-unit="${p.u}"]`);
+  apriUnit(det);
+  const btns = det.querySelectorAll(".tracce button");
+  const idx = playlist.filter(x => x.u === p.u).findIndex(x => x.n === p.n);
+  btns[idx].classList.add("attiva");
+  ["seek", "play", "indietro10", "avanti10"].forEach(id => $(id).disabled = false);
+  $("prec").disabled = corrente === 0;
+  $("succ").disabled = corrente === playlist.length - 1;
+}
+
+$("play").addEventListener("click", () => audio.paused ? audio.play() : audio.pause());
+$("prec").addEventListener("click", () => {
+  // se la traccia è già avanti di qualche secondo, la riavvia
+  if (audio.currentTime > 3) audio.currentTime = 0; else riproduci(corrente - 1, !audio.paused);
+});
+$("succ").addEventListener("click", () => riproduci(corrente + 1, !audio.paused));
+$("indietro10").addEventListener("click", () => audio.currentTime = Math.max(0, audio.currentTime - 10));
+$("avanti10").addEventListener("click", () => audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10));
+
+const ICONA_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.5-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>';
+const ICONA_PAUSA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
+function iconaPlay(inPlay) {
+  for (const id of ["play", "mini-play"]) {
+    $(id).innerHTML = inPlay ? ICONA_PAUSA : ICONA_PLAY;
+    $(id).setAttribute("aria-label", inPlay ? "Pausa" : "Riproduci");
+  }
+}
+audio.addEventListener("play", () => iconaPlay(true));
+audio.addEventListener("pause", () => iconaPlay(false));
+audio.addEventListener("loadedmetadata", () => { $("seek").max = audio.duration; $("t-tot").textContent = formatta(audio.duration); });
+audio.addEventListener("timeupdate", () => {
+  if (!seekInUso) $("seek").value = audio.currentTime;
+  $("t-corr").textContent = formatta(audio.currentTime);
+});
+audio.addEventListener("ended", () => {
+  if ($("ripeti").checked) { audio.currentTime = 0; audio.play(); }
+  else if ($("auto").checked && corrente < playlist.length - 1) riproduci(corrente + 1);
+});
+audio.addEventListener("error", () => {
+  if (corrente < 0) return;
+  const e = $("errore");
+  e.textContent = `File non trovato: ${decodeURIComponent(playlist[corrente].src)}. Controlla che il nome della cartella e del file coincidano con la configurazione.`;
+  e.style.display = "block";
+});
+
+let seekInUso = false;
+const seek = $("seek");
+seek.addEventListener("input", () => { seekInUso = true; $("t-corr").textContent = formatta(seek.value); });
+seek.addEventListener("change", () => { audio.currentTime = seek.value; seekInUso = false; });
+
+$("velocita").addEventListener("change", e => audio.playbackRate = parseFloat(e.target.value));
+$("volume").addEventListener("input", e => audio.volume = e.target.value);
+
+// Scorciatoie da tastiera
+document.addEventListener("keydown", e => {
+  if (["INPUT", "SELECT"].includes(e.target.tagName) && e.target.type !== "checkbox") return;
+  if (vista === "libro") {   // nella vista libro le frecce girano pagina
+    if (e.code === "ArrowLeft" || e.code === "PageUp") vaiA(pagina - 1);
+    else if (e.code === "ArrowRight" || e.code === "PageDown") vaiA(pagina + 1);
+    return;
+  }
+  if (corrente < 0) return;
+  if (e.code === "Space" && e.target.tagName !== "BUTTON") { e.preventDefault(); $("play").click(); }
+  if (e.code === "ArrowLeft")  $("indietro10").click();
+  if (e.code === "ArrowRight") $("avanti10").click();
+});
+
+// ===================== LIBRI (PDF) =====================
+// Nomi dei file nella cartella "Books" (accanto a questa pagina)
+const CARTELLA_LIBRI = "Books";
+const LIBRI = [
+  { file: "Student's Book.pdf",  nome: "Student's Book",  sigla: "SB" },
+  { file: "Workbook.pdf",        nome: "Workbook",        sigla: "WB" },
+  { file: "Teacher's Guide.pdf", nome: "Teacher's Guide", sigla: "TG" },
+];
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+let vista = "libro", pdfDoc = null, libro = -1, pagina = 1, totale = 0, zoom = 1, caricamento = 0;
+let stato = { libro: 0, pagine: {} };
+try { Object.assign(stato, JSON.parse(localStorage.getItem("headway-libri")) || {}); } catch (e) {}
+const salva = () => { try { localStorage.setItem("headway-libri", JSON.stringify(stato)); } catch (e) {} };
+
+LIBRI.forEach((l, i) => {
+  const b = document.createElement("button");
+  b.className = "voce-libro";
+  b.innerHTML = `<span class="num">${l.sigla}</span><span class="nome">${l.nome}</span>`;
+  b.addEventListener("click", () => { apriLibro(i); chiudiMenu(); });
+  libriNav.appendChild(b);
+});
+
+// Passa tra vista audio (player) e vista libro (PDF)
+function mostra(v) {
+  vista = v;
+  $("vista-audio").hidden = v !== "audio";
+  $("vista-libro").hidden = v !== "libro";
+  $("mini").hidden = !(v === "libro" && corrente >= 0);
+  libriNav.querySelectorAll(".voce-libro").forEach((b, i) => b.classList.toggle("attiva", v === "libro" && i === libro));
+  if (v === "libro") disegna();
+}
+
+// pdf.js viene scaricato solo la prima volta che serve un PDF
+let pdfjsPromessa = null;
+function caricaPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve();
+  return pdfjsPromessa || (pdfjsPromessa = new Promise((ok, ko) => {
+    const sc = document.createElement("script");
+    sc.src = PDFJS;
+    sc.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; ok(); };
+    sc.onerror = () => { pdfjsPromessa = null; ko(new Error("pdf.js non raggiungibile")); };
+    document.head.appendChild(sc);
+  }));
+}
+
+async function apriLibro(i) {
+  if (i === libro && pdfDoc) return mostra("libro");
+  libro = i; stato.libro = i; salva();
+  const l = LIBRI[i], mio = ++caricamento, st = $("pdf-stato");
+  if (pdfDoc) { pdfDoc.destroy(); pdfDoc = null; }
+  totale = 0; zoom = 1;
+  $("pdf-holder").replaceChildren();
+  st.textContent = "Caricamento…";
+  aggiornaBarra();
+  mostra("libro");
+  const url = new URL([CARTELLA_LIBRI, l.file].map(encodeURIComponent).join("/"), location.href).href;
+  try {
+    await caricaPdfJs();
+    const doc = await pdfjsLib.getDocument({ url }).promise;
+    if (mio !== caricamento) { doc.destroy(); return; }
+    pdfDoc = doc; totale = doc.numPages;
+    pagina = Math.min(Math.max(1, stato.pagine[l.file] || 1), totale);
+    st.textContent = "";
+    aggiornaBarra();
+    disegna();
+  } catch (err) {
+    if (mio !== caricamento) return;
+    st.textContent = `Impossibile aprire ${CARTELLA_LIBRI}/${l.file}. ` + (location.protocol === "file:"
+      ? "Aprendo la pagina direttamente dal disco il browser blocca i PDF: serve un server locale (es. python -m http.server)."
+      : "Controlla il nome del file e la connessione (il visualizzatore PDF si scarica da internet).");
+    const a = document.createElement("a");
+    a.href = url; a.target = "_blank"; a.textContent = " Apri nel browser";
+    st.append(a);
+  }
+}
+
+// Disegna la pagina corrente su un canvas (larghezza = area disponibile × zoom)
+let inCorso = false, ancora = false, compito = null;
+async function disegna() {
+  const area = $("pdf-scroll");
+  if (!pdfDoc || !area.clientWidth || vista !== "libro") return;
+  if (inCorso) { ancora = true; if (compito) compito.cancel(); return; }
+  inCorso = true;
+  try {
+    do {
+      ancora = false;
+      const doc = pdfDoc, pag = await doc.getPage(pagina);
+      const v1 = pag.getViewport({ scale: 1 });
+      const css = Math.max(0.1, (area.clientWidth - 16) / v1.width) * zoom;
+      let sc = css * Math.min(window.devicePixelRatio || 1, 2);
+      const px = v1.width * v1.height * sc * sc;
+      if (px > 16e6) sc *= Math.sqrt(16e6 / px);          // limite di memoria sui telefoni
+      const vp = pag.getViewport({ scale: sc }), c = document.createElement("canvas");
+      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+      c.style.width = Math.floor(v1.width * css) + "px";
+      c.style.height = Math.floor(v1.height * css) + "px";
+      compito = pag.render({ canvasContext: c.getContext("2d"), viewport: vp });
+      try { await compito.promise; }
+      catch (e) { if (e && e.name === "RenderingCancelledException") continue; throw e; }
+      if (doc === pdfDoc) $("pdf-holder").replaceChildren(c);
+    } while (ancora);
+  } catch (e) { /* documento chiuso durante il disegno */ }
+  inCorso = false;
+}
+
+function aggiornaBarra() {
+  $("pg").value = pagina; $("pg").max = totale || 1;
+  $("pg-tot").textContent = totale ? "/ " + totale : "";
+  $("pg-prec").disabled = !totale || pagina <= 1;
+  $("pg-succ").disabled = !totale || pagina >= totale;
+  $("zoom-val").textContent = Math.round(zoom * 100) + "%";
+}
+function vaiA(n) {
+  if (!pdfDoc) return;
+  n = Math.min(Math.max(1, n || pagina), totale);
+  if (n !== pagina) {
+    pagina = n;
+    stato.pagine[LIBRI[libro].file] = n; salva();     // ricorda la pagina per ogni libro
+    $("pdf-scroll").scrollTop = 0;
+    disegna();
+  }
+  aggiornaBarra();
+}
+function zoomA(z) { zoom = Math.min(4, Math.max(0.5, z)); aggiornaBarra(); disegna(); }
+
+$("pg-prec").addEventListener("click", () => vaiA(pagina - 1));
+$("pg-succ").addEventListener("click", () => vaiA(pagina + 1));
+$("pg").addEventListener("change", e => vaiA(parseInt(e.target.value, 10)));
+$("zoom-meno").addEventListener("click", () => zoomA(zoom / 1.25));
+$("zoom-piu").addEventListener("click", () => zoomA(zoom * 1.25));
+$("zoom-val").addEventListener("click", () => zoomA(1));
+$("mini-info").addEventListener("click", () => mostra("audio"));
+$("mini-play").addEventListener("click", () => { if (audio.paused) audio.play(); else audio.pause(); });
+let largPrec = 0;
+new ResizeObserver(() => {
+  const w = $("pdf-scroll").clientWidth;
+  if (Math.abs(w - largPrec) > 24) { largPrec = w; disegna(); }
+}).observe($("pdf-scroll"));
+
+iconaPlay(false);
+// Schermata iniziale: l'ultimo libro aperto (di default lo Student's Book) alla pagina in cui era rimasto
+apriLibro(LIBRI[stato.libro] ? stato.libro : 0);
+
+// Ripristina l'ultima traccia ascoltata (senza avviarla)
+try {
+  const ultima = localStorage.getItem("headway-ultima");
+  const i = playlist.findIndex(p => p.src === ultima);
+  if (i >= 0) riproduci(i, false);
+} catch (e) {}
+</script>
+</body>
+</html>

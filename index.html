@@ -277,7 +277,7 @@
           <option value="1.25">1.25×</option>
         </select>
       </label>
-      <label><input type="checkbox" id="auto" checked> Traccia successiva in automatico</label>
+      <label><input type="checkbox" id="auto"> Traccia successiva in automatico</label>
       <label><input type="checkbox" id="ripeti"> Ripeti traccia</label>
       <label>Volume <input type="range" id="volume" min="0" max="1" step="0.05" value="1"></label>
     </div>
@@ -389,7 +389,7 @@ UNITS.forEach(([cartella, tracce, titolo], u) => {
     b.textContent = pad(n);
     b.title = `Unit ${parseInt(numero, 10)} – traccia ${pad(n)}`;
     b.addEventListener("click", () => {
-      riproduci(playlist.findIndex(p => p.u === u && p.n === n));
+      riproduci(playlist.findIndex(p => p.u === u && p.n === n), false);   // si sceglie la traccia, si avvia con ▶
       chiudiMenu();
     });
     li.appendChild(b);
@@ -482,6 +482,7 @@ function riproduci(i, avvia = true) {
   audio.playbackRate = parseFloat($("velocita").value);
   $("errore").style.display = "none";
   if (avvia) audio.play().catch(() => {});
+  else audio.pause();
   aggiornaInterfaccia();
   try { localStorage.setItem("headway-ultima", p.src); } catch (e) {}
 }
@@ -506,9 +507,9 @@ function aggiornaInterfaccia() {
 $("play").addEventListener("click", () => audio.paused ? audio.play() : audio.pause());
 $("prec").addEventListener("click", () => {
   // se la traccia è già avanti di qualche secondo, la riavvia
-  if (audio.currentTime > 3) audio.currentTime = 0; else riproduci(corrente - 1);
+  if (audio.currentTime > 3) audio.currentTime = 0; else riproduci(corrente - 1, !audio.paused);
 });
-$("succ").addEventListener("click", () => riproduci(corrente + 1));
+$("succ").addEventListener("click", () => riproduci(corrente + 1, !audio.paused));
 $("indietro10").addEventListener("click", () => audio.currentTime = Math.max(0, audio.currentTime - 10));
 $("avanti10").addEventListener("click", () => audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10));
 
